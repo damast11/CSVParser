@@ -17,12 +17,14 @@ public class CsvMapper {
         try (var scanner = new Scanner(new FileReader(pathToFile))) {
             while (scanner.hasNextLine()) {
                 var line = scanner.nextLine();
-                var splitLines = line.split(",");
-                var lineWithDoubleQuotes = Arrays.stream(splitLines)
-                    .map(this::deleteShieldsIfExists)
-                    .map(this::addDoubleQuotesIfNotExists)
-                    .collect(Collectors.joining("\\,"));
-                result.add(lineWithDoubleQuotes);
+                if (!"".equals(line)) {
+                    var splitLines = line.split(",");
+                    var lineWithDoubleQuotes = Arrays.stream(splitLines)
+                        .map(this::deleteShieldsIfExists)
+                        .map(this::addDoubleQuotesIfNotExists)
+                        .collect(Collectors.joining("\\,"));
+                    result.add(lineWithDoubleQuotes);
+                }
             }
 
         } catch (FileNotFoundException e) {
@@ -33,12 +35,16 @@ public class CsvMapper {
     }
 
     private String deleteShieldsIfExists(String line) {
-
-        return line.charAt(line.length() - 1) == '\\' ? line.substring(0, line.length()-1) : line;
+        if ("".equals(line)) {
+            return "";
+        }
+        return line.charAt(line.length() - 1) == '\\' ? line.substring(0, line.length() - 1) : line;
     }
 
     private void writeDataToFile(String pathToFile, String data) {
-        try(var fileWriter = new FileWriter(pathToFile);
+        var pathWithoutExtension = pathToFile.substring(0, pathToFile.length() - 4);
+        var newPath = pathWithoutExtension + "AfterMapping.csv";
+        try(var fileWriter = new FileWriter(newPath);
             var bufferedWriter = new BufferedWriter(fileWriter)) {
             bufferedWriter.write(data);
             bufferedWriter.newLine();
